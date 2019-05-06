@@ -10,11 +10,11 @@ display_step = 10
 (x_train_data, y_train_data), (x_test_data, y_test_data) = keras.datasets.cifar10.load_data()
 
 train_dataset = tf.data.Dataset.from_tensor_slices((x_train_data, y_train_data)) \
-    .map(lambda a, b: (a / 255, tf.one_hot(b, 10))) \
+    .map(lambda a, b: (a / 255, tf.reshape(tf.one_hot(b, 10), [-1]))) \
     .shuffle(1000).repeat(train_epochs).batch(batch_size)
 
 test_dataset = tf.data.Dataset.from_tensor_slices((x_test_data, y_test_data)) \
-    .map(lambda a, b: (a / 255, tf.one_hot(b, 10))) \
+    .map(lambda a, b: (a / 255, tf.reshape(tf.one_hot(b, 10), [-1]))) \
     .shuffle(1000).repeat().batch(test_batch_size)
 
 train_iterator = train_dataset.make_initializable_iterator()

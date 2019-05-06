@@ -10,20 +10,20 @@ display_step = 10
 (x_train_data, y_train_data), (x_test_data, y_test_data) = keras.datasets.cifar10.load_data()
 
 train_dataset = tf.data.Dataset.from_tensor_slices((x_train_data, y_train_data)) \
-    .map(lambda a, b: (a / 255, tf.one_hot(b, 10))) \
+    .map(lambda a, b: (a / 255, tf.reshape(tf.one_hot(b, 10), [-1]))) \
     .shuffle(1000).repeat(train_epochs).batch(batch_size)
 
 test_dataset = tf.data.Dataset.from_tensor_slices((x_test_data, y_test_data)) \
-    .map(lambda a, b: (a / 255, tf.one_hot(b, 10))) \
+    .map(lambda a, b: (a / 255, tf.reshape(tf.one_hot(b, 10), [-1]))) \
     .shuffle(1000).repeat().batch(test_batch_size)
 
 model = tf.keras.Sequential()
 
 model.add(keras.applications.VGG16(input_shape=x_train_data.shape[1:], include_top=False))
 model.add(keras.layers.Flatten())
-model.add(keras.layers.Dense(512, activation='relu'))
+model.add(keras.layers.Dense(4096, activation='relu'))
 model.add(keras.layers.Dropout(0.3))
-model.add(keras.layers.Dense(512, activation='relu'))
+model.add(keras.layers.Dense(4096, activation='relu'))
 model.add(keras.layers.Dropout(0.3))
 model.add(keras.layers.Dense(10, activation='softmax'))
 
