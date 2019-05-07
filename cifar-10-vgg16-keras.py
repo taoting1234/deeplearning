@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow import keras
 
-train_epochs = 10
+train_epochs = 100
 batch_size = 100
 test_batch_size = 100
 learning_rate = 0.01
@@ -19,15 +19,15 @@ test_dataset = tf.data.Dataset.from_tensor_slices((x_test_data, y_test_data)) \
 
 model = tf.keras.Sequential()
 
-model.add(keras.applications.VGG16(input_shape=x_train_data.shape[1:], include_top=False))
+model.add(keras.applications.ResNet50(input_shape=x_train_data.shape[1:], include_top=False))
 model.add(keras.layers.Flatten())
 model.add(keras.layers.Dense(4096, activation='relu'))
-model.add(keras.layers.Dropout(0.3))
+model.add(keras.layers.Dropout(0.5))
 model.add(keras.layers.Dense(4096, activation='relu'))
-model.add(keras.layers.Dropout(0.3))
+model.add(keras.layers.Dropout(0.5))
 model.add(keras.layers.Dense(10, activation='softmax'))
 
-model.layers[0].trainable = False  # vgg不训练
+model.layers[0].trainable = False
 
 model.summary()
 
