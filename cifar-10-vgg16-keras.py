@@ -17,20 +17,20 @@ test_dataset = tf.data.Dataset.from_tensor_slices((x_test_data, y_test_data)) \
     .map(lambda a, b: (a / 255, tf.reshape(tf.one_hot(b, 10), [-1]))) \
     .shuffle(1000).repeat().batch(test_batch_size)
 
-model = tf.keras.Sequential()
+model_vgg = keras.applications.VGG16(input_shape=x_train_data.shape[1:], include_top=False)
+for layers in model_vgg.layers:
+    layers.trainable = False
 
-model.add(keras.applications.ResNet50(input_shape=x_train_data.shape[1:], include_top=False))
-model.add(keras.layers.Flatten())
-model.add(keras.layers.Dense(4096, activation='relu'))
-model.add(keras.layers.Dropout(0.5))
-model.add(keras.layers.Dense(4096, activation='relu'))
-model.add(keras.layers.Dropout(0.5))
-model.add(keras.layers.Dense(10, activation='softmax'))
-
-model.layers[0].trainable = False
+model = keras.layers.Flatten()(model_vgg.output)
+model = keras.layers.Dense(4096, activation='relu')(model)
+model = keras.layers.Dense(4096, activation='relu')(model)
+model = keras.layers.Dropout(0.5)(model)
+model = keras.layers.Dense(10, activation='softmax')(model)
+model = keras.models.Model(inputs=model_vgg.input, outputs=model)
 
 model.summary()
 
-model.compile(optimizer=keras.optimizers.Adam(), loss=keras.losses.categorical_crossentropy, metrics=['accuracy'])
+model.compile(optimizer=keras.optimizers.Adam(), loss=keras.losses.categorical_crossentropy,
+              metrics=['accuracy'])
 model.fit(train_dataset, epochs=train_epochs, steps_per_epoch=x_train_data.shape[0] // batch_size,
           validation_data=test_dataset, validation_steps=10)

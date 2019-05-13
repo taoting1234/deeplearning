@@ -1,4 +1,5 @@
 import tensorflow as tf
+import numpy as np
 from tensorflow import keras
 
 train_epochs = 10
@@ -10,11 +11,11 @@ display_step = 10
 (x_train_data, y_train_data), (x_test_data, y_test_data) = keras.datasets.cifar10.load_data()
 
 train_dataset = tf.data.Dataset.from_tensor_slices((x_train_data, y_train_data)) \
-    .map(lambda a, b: (a / 255, tf.reshape(tf.one_hot(b, 10), [-1]))) \
+    .map(lambda a, b: (tf.reshape(a, (32, 32, 3)) / 255, tf.reshape(tf.one_hot(b, 10), [-1]))) \
     .shuffle(1000).repeat(train_epochs).batch(batch_size)
 
 test_dataset = tf.data.Dataset.from_tensor_slices((x_test_data, y_test_data)) \
-    .map(lambda a, b: (a / 255, tf.reshape(tf.one_hot(b, 10), [-1]))) \
+    .map(lambda a, b: (tf.reshape(a, (32, 32, 3)) / 255, tf.reshape(tf.one_hot(b, 10), [-1]))) \
     .shuffle(1000).repeat().batch(test_batch_size)
 
 train_iterator = train_dataset.make_initializable_iterator()
@@ -28,18 +29,16 @@ y = tf.placeholder(tf.float32, [None, 10], name='y')
 conv1 = tf.layers.conv2d(inputs=x, filters=32, kernel_size=[5, 5], strides=1, padding='same',
                          activation=tf.nn.relu)
 pool1 = tf.layers.max_pooling2d(inputs=conv1, pool_size=[2, 2], strides=2)
-conv2 = tf.layers.conv2d(inputs=pool1, filters=64, kernel_size=[5, 5], strides=1, padding='same',
-                         activation=tf.nn.relu)
+conv2 = tf.layers.conv2d(inputs=pool1, filters=64, kernel_size=[5, 5], strides=1, padding='same', activation=tf.nn.relu)
 pool2 = tf.layers.max_pooling2d(inputs=conv2, pool_size=[2, 2], strides=2)
 flat = tf.reshape(pool2, [-1, 8 * 8 * 64])
-dense = tf.layers.dense(inputs=flat, units=128, activation=tf.nn.relu)
+dense = tf.layers.dense(inputs=flat, units=1024, activation=tf.nn.relu)
 dropout = tf.layers.dropout(inputs=dense, rate=0.5)
 
 pred = tf.layers.dense(inputs=dropout, units=10)
 
 loss_function = tf.losses.softmax_cross_entropy(onehot_labels=y, logits=pred)
 optimizer = tf.train.AdamOptimizer(learning_rate).minimize(loss_function)
-
 correct_pred = tf.equal(tf.argmax(y, 1), tf.argmax(pred, 1))
 accuracy = tf.reduce_mean(tf.cast(correct_pred, tf.float32))
 
@@ -58,6 +57,6 @@ while 1:
     sess.run([optimizer], feed_dict={x: xs, y: ys})
     step += 1
     if step % display_step == 0:
-        xss, yss = sess.run(test_next_element)
+        xss, yss = sess.run(train_next_element)
         loss, acc = sess.run([loss_function, accuracy], feed_dict={x: xss, y: yss})
         print('step:{:d} loss:{:.05f} acc:{:.05f}'.format(step, loss, acc))

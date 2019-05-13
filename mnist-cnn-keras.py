@@ -37,9 +37,9 @@ model.add(keras.layers.Dense(10, activation='softmax'))
 
 model.summary()
 
-model.compile(optimizer=keras.optimizers.Adam(), loss=keras.losses.categorical_crossentropy, metrics=['accuracy'])
-model.fit(train_dataset, epochs=train_epochs, steps_per_epoch=x_train_data.shape[0] // batch_size,
-          validation_data=test_dataset, validation_steps=10)
+parallel_model = keras.utils.multi_gpu_model(model, gpus=4)
 
-result = np.argmax(model.predict(test_dataset, steps=10), 1)
-print(result)
+parallel_model.compile(optimizer=keras.optimizers.Adam(), loss=keras.losses.categorical_crossentropy,
+                       metrics=['accuracy'])
+parallel_model.fit(train_dataset, epochs=train_epochs, steps_per_epoch=x_train_data.shape[0] // batch_size,
+                   validation_data=test_dataset, validation_steps=10)
