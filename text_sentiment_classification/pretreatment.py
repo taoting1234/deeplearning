@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 import json
 import re
+
+from gensim.models import word2vec
 from tensorflow import keras
 
 
@@ -10,8 +12,18 @@ def segmentation(sentence):
 
 
 def sentence_to_vector(data, word_vector, max_len=50):
-    vector = np.array([np.array([word_vector.get(j, 0) for j in i.split(' ')]) for i in data])
-    return keras.preprocessing.sequence.pad_sequences(vector, maxlen=max_len)
+    vector = []
+    for i in data:
+        tmp = []
+        for j in segmentation(i):
+            try:
+                tmp.append(word_vector.wv.get_vector(j))
+            except KeyError:
+                tmp.append(np.zeros(100))
+        tmp = np.array(tmp)
+        vector.append(tmp)
+    vector = np.array(vector)
+    return keras.preprocessing.sequence.pad_sequences(vector, maxlen=max_len, dtype='float64')
 
 
 def load_data(filename, test_ratio=0.1):
@@ -23,7 +35,7 @@ def load_data(filename, test_ratio=0.1):
     x_test_data = data[train_data_num:, 1]
     y_test_data = data[train_data_num:, 2]
 
-    word_vector = load_word_vector()
+    word_vector = create_word2vec_model(filename)
 
     x_train_data = sentence_to_vector(x_train_data, word_vector)
     x_test_data = sentence_to_vector(x_test_data, word_vector)
@@ -34,33 +46,21 @@ def load_data(filename, test_ratio=0.1):
     return (x_train_data, y_train_data), (x_test_data, y_test_data)
 
 
-def create_word_vector(filename):
+def create_word2vec_model(filename):
     df = pd.read_csv(filename, lineterminator='\n')
     data = np.array(df.values)
-    word_map = dict()
-    t = 0
-    for i in data[:, 1]:
-        for j in segmentation(i):
-            if word_map.get(j) is None:
-                t += 1
-                word_map[j] = t
-    return word_map
+    sentences = [segmentation(i) for i in data[:, 1]]
+    model = word2vec.Word2Vec(sentences, min_count=5)
+    return model
 
 
-def save_word_vector(word_map, filename='word_map.json'):
-    with open(filename, 'w') as f:
-        f.write(json.dumps(word_map))
+def save_word2vec_model(model, filename='word2vec.model'):
+    model.save(filename)
 
 
-def load_word_vector(filename='word_map.json'):
-    with open(filename) as f:
-        return json.loads(f.read())
-
-
-def get_word_num(filename='word_map.json'):
-    return len(load_word_vector(filename))
+def load_word2vec_model(filename):
+    return word2vec.Word2Vec.load(filename)
 
 
 if __name__ == '__main__':
-    save_word_vector(create_word_vector('data/train.csv'))
-    # load_data('data/train.csv')
+    load_data('data/train.csv')

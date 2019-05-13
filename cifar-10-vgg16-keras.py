@@ -21,10 +21,8 @@ model_vgg = keras.applications.VGG16(input_shape=x_train_data.shape[1:], include
 for layers in model_vgg.layers:
     layers.trainable = False
 
-model = keras.layers.Flatten()(model_vgg.output)
-model = keras.layers.Dense(4096, activation='relu')(model)
-model = keras.layers.Dense(4096, activation='relu')(model)
-model = keras.layers.Dropout(0.5)(model)
+model = keras.layers.GlobalAveragePooling2D()(model_vgg.output)
+# model = keras.layers.Dropout(0.5)(model)
 model = keras.layers.Dense(10, activation='softmax')(model)
 model = keras.models.Model(inputs=model_vgg.input, outputs=model)
 

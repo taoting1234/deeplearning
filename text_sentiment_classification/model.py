@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tensorflow import keras
-from text_sentiment_classification.pretreatment import load_data, get_word_num
+from text_sentiment_classification.pretreatment import load_data
 
 train_epochs = 10
 batch_size = 100
@@ -24,8 +24,7 @@ test_iterator = test_dataset.make_initializable_iterator()
 test_next_element = test_iterator.get_next()
 
 model = keras.Sequential()
-model.add(keras.layers.Embedding(get_word_num() + 1, 256))
-model.add(keras.layers.Bidirectional(keras.layers.LSTM(128)))
+model.add(keras.layers.Bidirectional(keras.layers.LSTM(128, input_shape=(50, 100))))
 model.add(keras.layers.Dropout(0.5))
 model.add(keras.layers.Dense(2, activation='relu'))
 
