@@ -9,7 +9,12 @@ from tensorflow import keras
 
 
 def segmentation(sentence):
-    return re.split(r'\W+', sentence)
+    res = re.split(r'[\W\d]+', sentence)
+    for i, j in enumerate(res):
+        if j == '':
+            res.pop(i)
+            break
+    return res
 
 
 def load_data(filename, test_ratio=0.1, min_count=5, vector_size=100, max_len=50):
