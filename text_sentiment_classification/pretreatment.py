@@ -16,7 +16,7 @@ def segmentation(sentence):
     return res
 
 
-def load_data(filename, test_ratio=0.1, min_count=5, vector_size=100, max_len=50):
+def load_data(filename, test_ratio, min_count, vector_size, max_len):
     df = pd.read_csv(filename, lineterminator='\n')
     data = np.array(df.values)
     train_data_num = int(data.shape[0] * (1 - test_ratio))
@@ -42,7 +42,7 @@ def load_data(filename, test_ratio=0.1, min_count=5, vector_size=100, max_len=50
     return (x_train_data, y_train_data), (x_test_data, y_test_data), n_symbols, embedding_weights
 
 
-def create_dictionaries(model, combined, max_len=50):
+def create_dictionaries(model, combined, max_len):
     ''' Function does are number of Jobs:
         1- Creates a word to index mapping
         2- Creates a word to vector mapping
@@ -68,7 +68,7 @@ def create_dictionaries(model, combined, max_len=50):
     return w2indx, w2vec, combined
 
 
-def create_word2vec_model(combined, min_count=5, vector_size=100):
+def create_word2vec_model(combined, min_count, vector_size):
     model = word2vec.Word2Vec(combined, min_count=min_count, size=vector_size)
     return model
 
